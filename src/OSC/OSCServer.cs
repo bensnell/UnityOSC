@@ -42,6 +42,8 @@ namespace UnityOSC
 		{
             PacketReceivedEvent += delegate(OSCServer s, OSCPacket p) { };
 
+			lastPackets = new List<OSCPacket>();
+
 			_localPort = localPort;
 			Connect();
 		}
@@ -51,6 +53,7 @@ namespace UnityOSC
 		private UdpClient _udpClient;
 		private int _localPort;
 		private Thread _receiverThread;
+		public List<OSCPacket> lastPackets;
 		private OSCPacket _lastReceivedPacket;
 		private int _sleepMilliseconds = 10;
 		#endregion
@@ -154,6 +157,9 @@ namespace UnityOSC
 				{
                     OSCPacket packet = OSCPacket.Unpack(bytes);
 
+					// add packets to a list
+					lastPackets.Add(packet);
+
                     _lastReceivedPacket = packet;
 
                     PacketReceivedEvent(this, _lastReceivedPacket);	
@@ -172,7 +178,10 @@ namespace UnityOSC
 			while( true )
 			{
 				Receive();
-				
+
+//				UnityEngine.Debug.Log (String.Format ("Last received raw data:\t {0}",
+//					_lastReceivedPacket.Data [0].ToString ()));
+
 				Thread.Sleep(_sleepMilliseconds);
 			}
 		}

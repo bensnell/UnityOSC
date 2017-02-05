@@ -98,7 +98,7 @@ public class OSCHandler : MonoBehaviour
         //Initialize OSC servers (listeners)
         //Example:
 
-        //CreateServer("AndroidPhone", 6666);
+        CreateServer("iPhone_Server", 6666);
 	}
 	
 	#region Properties
@@ -278,37 +278,70 @@ public class OSCHandler : MonoBehaviour
 	{
 		foreach(KeyValuePair<string,ServerLog> pair in _servers)
 		{
-			if(_servers[pair.Key].server.LastReceivedPacket != null)
-			{
-				//Initialization for the first packet received
-				if(_servers[pair.Key].log.Count == 0)
-				{	
-					_servers[pair.Key].packets.Add(_servers[pair.Key].server.LastReceivedPacket);
-						
-					_servers[pair.Key].log.Add(String.Concat(DateTime.UtcNow.ToString(), ".",
-					                                         FormatMilliseconds(DateTime.Now.Millisecond)," : ",
-					                                         _servers[pair.Key].server.LastReceivedPacket.Address," ",
-					                                         DataToString(_servers[pair.Key].server.LastReceivedPacket.Data)));
-					break;
+
+			// Code I added:
+			if (_servers [pair.Key].server.LastReceivedPacket != null) {
+				// if the server has data values waiting, add them to the log
+				for (int i = 0; i < _servers [pair.Key].server.lastPackets.Count; i++) {
+
+
+					// add all values to the end of the log
+					_servers [pair.Key].packets.Add (_servers [pair.Key].server.lastPackets [i]);
+
+					// don't bother creating the log
+					_servers [pair.Key].log.Add (String.Concat (DateTime.UtcNow.ToString (), ".",
+						FormatMilliseconds (DateTime.Now.Millisecond), " : ",
+						_servers [pair.Key].server.lastPackets [i].Address, " ",
+						DataToString (_servers [pair.Key].server.lastPackets [i].Data)));
 				}
-						
-				if(_servers[pair.Key].server.LastReceivedPacket.TimeStamp
-				   != _servers[pair.Key].packets[_servers[pair.Key].packets.Count - 1].TimeStamp)
-				{	
-					if(_servers[pair.Key].log.Count > _loglength - 1)
-					{
-						_servers[pair.Key].log.RemoveAt(0);
-						_servers[pair.Key].packets.RemoveAt(0);
-					}
-		
-					_servers[pair.Key].packets.Add(_servers[pair.Key].server.LastReceivedPacket);
-						
-					_servers[pair.Key].log.Add(String.Concat(DateTime.UtcNow.ToString(), ".",
-					                                         FormatMilliseconds(DateTime.Now.Millisecond)," : ",
-					                                         _servers[pair.Key].server.LastReceivedPacket.Address," ",
-					                                         DataToString(_servers[pair.Key].server.LastReceivedPacket.Data)));
+
+				// delete the old packets
+				_servers [pair.Key].server.lastPackets.Clear ();
+
+				// delete the oldest elements so there are only _loglength remaining
+				if (_servers [pair.Key].packets.Count > _loglength) {
+
+					_servers [pair.Key].packets.RemoveRange (0, _servers [pair.Key].packets.Count - _loglength);
+
 				}
 			}
+
+			// Code that came with the library:
+//			if(_servers[pair.Key].server.LastReceivedPacket != null)
+//			{
+////				UnityEngine.Debug.Log (String.Format ("Last Received Packet\tDATA: {0}\tTIME: {1}",
+////					_servers [pair.Key].server.LastReceivedPacket.Data[0].ToString (),
+////					_servers [pair.Key].server.LastReceivedPacket.TimeStamp.ToString ()));
+//				
+//				//Initialization for the first packet received
+//				if(_servers[pair.Key].log.Count == 0)
+//				{	
+//					_servers[pair.Key].packets.Add(_servers[pair.Key].server.LastReceivedPacket);
+//						
+//					_servers[pair.Key].log.Add(String.Concat(DateTime.UtcNow.ToString(), ".",
+//					                                         FormatMilliseconds(DateTime.Now.Millisecond)," : ",
+//					                                         _servers[pair.Key].server.LastReceivedPacket.Address," ",
+//					                                         DataToString(_servers[pair.Key].server.LastReceivedPacket.Data)));
+//					break;
+//				}
+//						
+//				if(_servers[pair.Key].server.LastReceivedPacket.TimeStamp
+//				   != _servers[pair.Key].packets[_servers[pair.Key].packets.Count - 1].TimeStamp)
+//				{	
+//					if(_servers[pair.Key].log.Count > _loglength - 1)
+//					{
+//						_servers[pair.Key].log.RemoveAt(0);
+//						_servers[pair.Key].packets.RemoveAt(0);
+//					}
+//		
+//					_servers[pair.Key].packets.Add(_servers[pair.Key].server.LastReceivedPacket);
+//						
+//					_servers[pair.Key].log.Add(String.Concat(DateTime.UtcNow.ToString(), ".",
+//					                                         FormatMilliseconds(DateTime.Now.Millisecond)," : ",
+//					                                         _servers[pair.Key].server.LastReceivedPacket.Address," ",
+//					                                         DataToString(_servers[pair.Key].server.LastReceivedPacket.Data)));
+//				}
+//			}
 		}
 	}
 	
